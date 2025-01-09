@@ -20,7 +20,7 @@ function getRandomColor() {
   return CONFIG.COLORS[Math.floor(Math.random() * CONFIG.COLORS.length)];
 }
 
-// 优化分组逻辑
+// 修改分组逻辑
 async function groupTabs(tabs) {
   const groups = {};
   
@@ -43,7 +43,7 @@ async function groupTabs(tabs) {
       try {
         const group = await chrome.tabs.group({ tabIds });
         await chrome.tabGroups.update(group, {
-          title: domain,
+          title: `${domain} (${tabIds.length})`,
           color: getRandomColor()
         });
       } catch (error) {

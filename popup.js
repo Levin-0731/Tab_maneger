@@ -18,7 +18,7 @@ document.getElementById('groupTabs').addEventListener('click', async () => {
     if (tabIds.length >= 2) {
       const group = await chrome.tabs.group({ tabIds });
       await chrome.tabGroups.update(group, {
-        title: domain,
+        title: `${domain} (${tabIds.length})`,
         color: getRandomColor()
       });
     }
