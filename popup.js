@@ -55,6 +55,11 @@ async function updatePreview() {
       tabs.forEach(tab => {
         const tabItem = document.createElement('div');
         tabItem.className = 'tab-item';
+        tabItem.addEventListener('click', () => {
+          chrome.tabs.update(tab.id, { active: true });
+          chrome.windows.update(tab.windowId, { focused: true });
+        });
+        
         tabItem.innerHTML = `
           <img class="tab-favicon" src="${tab.favicon}" alt="">
           <span class="tab-title">${tab.title}</span>
