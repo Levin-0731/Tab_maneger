@@ -1,31 +1,16 @@
 document.getElementById('groupTabs').addEventListener('click', async () => {
-  const tabs = await chrome.tabs.query({ currentWindow: true });
-  
-  // 触发手动分组
-  const groups = {};
-  tabs.forEach(tab => {
-    if (tab.url.startsWith('http')) {
-      const url = new URL(tab.url);
-      const domain = url.hostname;
-      if (!groups[domain]) {
-        groups[domain] = [];
-      }
-      groups[domain].push(tab.id);
-    }
-  });
-
-  for (const [domain, tabIds] of Object.entries(groups)) {
-    if (tabIds.length >= 2) {
-      const group = await chrome.tabs.group({ tabIds });
-      await chrome.tabGroups.update(group, {
-        title: `${domain} (${tabIds.length})`,
-        color: getRandomColor()
-      });
-    }
+  try {
+    // 发送消息给 background script 来触发分组
+    await chrome.runtime.sendMessage({ action: 'groupTabs' });
+    
+    // 可以添加一些用户反馈
+    const button = document.getElementById('groupTabs');
+    const originalText = button.textContent;
+    button.textContent = '分组完成！';
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 2000);
+  } catch (error) {
+    console.error('Error grouping tabs:', error);
   }
-});
-
-function getRandomColor() {
-  const colors = ['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan'];
-  return colors[Math.floor(Math.random() * colors.length)];
-} 
+}); 
