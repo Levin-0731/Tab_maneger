@@ -41,8 +41,11 @@ async function updatePreview() {
       toggle.className = 'group-toggle';
       toggle.dataset.domain = domain;
       
+      // 获取域名对应的 Emoji
+      const emoji = getEmojiForDomain(domain);
+      
       groupHeader.innerHTML = `
-        <span class="domain-name">${domain} (${tabs.length})</span>
+        <span class="domain-name">${emoji} ${domain} (${tabs.length})</span>
       `;
       groupHeader.prepend(toggle);
       
@@ -119,4 +122,26 @@ document.getElementById('groupTabs').addEventListener('click', async () => {
     button.textContent = '分组失败';
     button.disabled = false;
   }
-}); 
+});
+
+// 添加 getEmojiForDomain 函数
+function getEmojiForDomain(domain) {
+  const DOMAIN_EMOJIS = {
+    'github.com': '💻',
+    'google.com': '🔍',
+    'youtube.com': '📺',
+    'bilibili.com': '📺',
+    'zhihu.com': '❓',
+    'juejin.cn': '📚',
+    'feishu.cn': '📝',
+    'notion.so': '📔',
+    default: '🌐'
+  };
+
+  for (const [key, emoji] of Object.entries(DOMAIN_EMOJIS)) {
+    if (domain.includes(key)) {
+      return emoji;
+    }
+  }
+  return DOMAIN_EMOJIS.default;
+} 
