@@ -53,16 +53,13 @@ async function groupTabs(tabs) {
   }
 }
 
-// 监听新标签页创建事件
-chrome.tabs.onCreated.addListener(async (tab) => {
-  try {
-    // 等待标签页加载完成
-    await new Promise(resolve => setTimeout(resolve, CONFIG.GROUP_DELAY));
-    
-    // 获取当前窗口的所有标签页
-    const tabs = await chrome.tabs.query({ windowId: tab.windowId });
-    await groupTabs(tabs);
-  } catch (error) {
-    console.error('Error in tab creation handler:', error);
+// 添加消息监听器，用于接收来自 popup 的请求
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'groupTabs') {
+    chrome.tabs.query({ currentWindow: true }, async (tabs) => {
+      await groupTabs(tabs);
+      sendResponse({ success: true });
+    });
+    return true; // 保持消息通道开放以支持异步响应
   }
 }); 
