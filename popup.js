@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await updatePreview();
   initializeSearch();
+  initializeGroupSwitch();
 });
 
 async function updatePreview() {
@@ -23,7 +24,7 @@ async function updatePreview() {
     }
   });
 
-  // 渲染预览
+  // 直接渲染预览，不需要动画
   const previewContainer = document.getElementById('preview-container');
   previewContainer.innerHTML = '';
 
@@ -96,38 +97,82 @@ function initializeSearch() {
   });
 }
 
-// 修改分组按钮点击事件
-document.getElementById('groupTabs').addEventListener('click', async () => {
-  try {
-    const selectedDomains = Array.from(document.querySelectorAll('.group-toggle:checked'))
-      .map(toggle => toggle.dataset.domain);
-    
-    if (selectedDomains.length === 0) {
-      alert('请至少选择一个分组');
-      return;
+// 添加开关初始化和处理函数
+function initializeGroupSwitch() {
+  const groupSwitch = document.getElementById('groupSwitch');
+  
+  // 检查当前窗口是否有分组，并设置开关状态
+  chrome.tabs.query({ currentWindow: true }, async (tabs) => {
+    const hasGroups = await checkForGroups();
+    groupSwitch.checked = hasGroups;
+  });
+
+  // 监听开关变化
+  groupSwitch.addEventListener('change', async (e) => {
+    try {
+      if (e.target.checked) {
+        // 开启分组
+        const selectedDomains = Array.from(document.querySelectorAll('.group-toggle:checked'))
+          .map(toggle => toggle.dataset.domain);
+        
+        if (selectedDomains.length === 0) {
+          alert('请至少选择一个分组');
+          e.target.checked = false;
+          return;
+        }
+
+        await chrome.runtime.sendMessage({ 
+          action: 'groupTabs',
+          domains: selectedDomains
+        });
+      } else {
+        // 取消所有分组
+        await unGroupAllTabs();
+      }
+    } catch (error) {
+      console.error('Error in switch handler:', error);
+      // 发生错误时恢复开关状态
+      e.target.checked = !e.target.checked;
     }
+  });
+}
 
-    const button = document.getElementById('groupTabs');
-    button.disabled = true;
-    button.textContent = '正在分组...';
+// 检查是否存在分组
+async function checkForGroups() {
+  const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+  return groups.length > 0;
+}
 
-    await chrome.runtime.sendMessage({ 
-      action: 'groupTabs',
-      domains: selectedDomains
+// 修改取消分组函数
+async function unGroupAllTabs() {
+  try {
+    // 先添加移除动画
+    await updatePreview(true);
+    
+    const response = await chrome.runtime.sendMessage({ 
+      action: 'unGroupTabs'
     });
-
-    button.textContent = '分组完成！';
-    setTimeout(() => {
-      button.disabled = false;
-      button.textContent = '开始分组';
-    }, 2000);
-
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to ungroup tabs');
+    }
+    
+    // 重新检查分组状态并更新预览
+    const hasGroups = await checkForGroups();
+    if (!hasGroups) {
+      await updatePreview();
+    } else {
+      throw new Error('Failed to ungroup all tabs');
+    }
   } catch (error) {
-    console.error('Error grouping tabs:', error);
-    button.textContent = '分组失败';
-    button.disabled = false;
+    console.error('Error ungrouping tabs:', error);
+    const groupSwitch = document.getElementById('groupSwitch');
+    groupSwitch.checked = true;
   }
-});
+}
+
+// 修改原有的分组按钮相关代码
+document.getElementById('groupTabs')?.remove(); // 移除原有的按钮
 
 // 添加 getEmojiForDomain 函数
 function getEmojiForDomain(domain) {
@@ -149,4 +194,9 @@ function getEmojiForDomain(domain) {
     }
   }
   return DOMAIN_EMOJIS.default;
+}
+
+// 添加延迟函数
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 } 
