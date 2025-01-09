@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "标签页自动分组",
+  "version": "1.0",
+  "description": "自动将相似的标签页进行分组管理",
+  "permissions": [
+    "tabs",
+    "tabGroups"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+} 

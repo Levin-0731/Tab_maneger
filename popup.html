@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 250px;
+      padding: 15px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    button {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4285f4;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #3367d6;
+    }
+    
+    .status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #f1f3f4;
+      font-size: 12px;
+      display: none;
+    }
+    
+    .success {
+      background-color: #e6f4ea;
+      color: #137333;
+    }
+    
+    .error {
+      background-color: #fce8e6;
+      color: #c5221f;
+    }
+  </style>
+</head>
+<body>
+  <button id="groupTabs">立即对标签进行分组</button>
+  <div id="status" class="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html> 
