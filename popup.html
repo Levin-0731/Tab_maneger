@@ -80,10 +80,34 @@
       gap: 8px;
       font-size: 12px;
       color: #333;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
     }
     
     .tab-item:hover {
-      background: #f8f9fa;
+      background: #f0f3f9;
+      padding-left: 16px;
+    }
+    
+    .tab-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #1a73e8;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    .tab-item:hover::before {
+      opacity: 1;
+    }
+    
+    .tab-item:active {
+      background: #e8f0fe;
     }
     
     .tab-favicon {
@@ -96,6 +120,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
     }
   </style>
 </head>
