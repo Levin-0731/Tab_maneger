@@ -1,16 +1,122 @@
+// 添加预览和分组功能
+document.addEventListener('DOMContentLoaded', async () => {
+  await updatePreview();
+  initializeSearch();
+});
+
+async function updatePreview() {
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  const groups = {};
+  
+  // 对标签进行分类预览
+  tabs.forEach(tab => {
+    if (tab.url.startsWith('http')) {
+      const domain = new URL(tab.url).hostname;
+      if (!groups[domain]) {
+        groups[domain] = [];
+      }
+      groups[domain].push({
+        id: tab.id,
+        title: tab.title,
+        favicon: tab.favIconUrl || 'chrome://favicon/size/16@2x'
+      });
+    }
+  });
+
+  // 渲染预览
+  const previewContainer = document.getElementById('preview-container');
+  previewContainer.innerHTML = '';
+
+  Object.entries(groups).forEach(([domain, tabs]) => {
+    if (tabs.length >= 2) {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'group-preview';
+      
+      const groupHeader = document.createElement('div');
+      groupHeader.className = 'group-header';
+      
+      const toggle = document.createElement('input');
+      toggle.type = 'checkbox';
+      toggle.checked = true;
+      toggle.className = 'group-toggle';
+      toggle.dataset.domain = domain;
+      
+      groupHeader.innerHTML = `
+        <span class="domain-name">${domain} (${tabs.length})</span>
+      `;
+      groupHeader.prepend(toggle);
+      
+      const tabList = document.createElement('div');
+      tabList.className = 'tab-list';
+      
+      tabs.forEach(tab => {
+        const tabItem = document.createElement('div');
+        tabItem.className = 'tab-item';
+        tabItem.innerHTML = `
+          <img class="tab-favicon" src="${tab.favicon}" alt="">
+          <span class="tab-title">${tab.title}</span>
+        `;
+        tabList.appendChild(tabItem);
+      });
+      
+      groupDiv.appendChild(groupHeader);
+      groupDiv.appendChild(tabList);
+      previewContainer.appendChild(groupDiv);
+    }
+  });
+}
+
+function initializeSearch() {
+  const searchBox = document.querySelector('.search-box');
+  searchBox.addEventListener('input', (e) => {
+    const searchText = e.target.value.toLowerCase();
+    const groups = document.querySelectorAll('.group-preview');
+    
+    groups.forEach(group => {
+      const tabs = group.querySelectorAll('.tab-item');
+      let hasMatch = false;
+      
+      tabs.forEach(tab => {
+        const title = tab.querySelector('.tab-title').textContent.toLowerCase();
+        const matches = title.includes(searchText);
+        tab.style.display = matches ? 'flex' : 'none';
+        if (matches) hasMatch = true;
+      });
+      
+      group.style.display = hasMatch ? 'block' : 'none';
+    });
+  });
+}
+
+// 修改分组按钮点击事件
 document.getElementById('groupTabs').addEventListener('click', async () => {
   try {
-    // 发送消息给 background script 来触发分组
-    await chrome.runtime.sendMessage({ action: 'groupTabs' });
+    const selectedDomains = Array.from(document.querySelectorAll('.group-toggle:checked'))
+      .map(toggle => toggle.dataset.domain);
     
-    // 可以添加一些用户反馈
+    if (selectedDomains.length === 0) {
+      alert('请至少选择一个分组');
+      return;
+    }
+
     const button = document.getElementById('groupTabs');
-    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = '正在分组...';
+
+    await chrome.runtime.sendMessage({ 
+      action: 'groupTabs',
+      domains: selectedDomains
+    });
+
     button.textContent = '分组完成！';
     setTimeout(() => {
-      button.textContent = originalText;
+      button.disabled = false;
+      button.textContent = '开始分组';
     }, 2000);
+
   } catch (error) {
     console.error('Error grouping tabs:', error);
+    button.textContent = '分组失败';
+    button.disabled = false;
   }
 }); 
