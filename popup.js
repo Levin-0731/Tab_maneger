@@ -32,6 +32,7 @@ async function updatePreview() {
     if (tabs.length >= 2) {
       const groupDiv = document.createElement('div');
       groupDiv.className = 'group-preview';
+      groupDiv.draggable = true;
       
       const groupHeader = document.createElement('div');
       groupHeader.className = 'group-header';
@@ -73,6 +74,9 @@ async function updatePreview() {
       previewContainer.appendChild(groupDiv);
     }
   });
+
+  // 初始化拖拽功能
+  initializeDragAndDrop();
 }
 
 function initializeSearch() {
@@ -199,4 +203,64 @@ function getEmojiForDomain(domain) {
 // 添加延迟函数
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 添加拖拽相关代码
+function initializeDragAndDrop() {
+  const container = document.getElementById('preview-container');
+  let draggedElement = null;
+  let placeholder = null;
+  
+  container.addEventListener('dragstart', (e) => {
+    draggedElement = e.target.closest('.group-preview');
+    if (draggedElement) {
+      draggedElement.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', '');
+      e.dataTransfer.effectAllowed = 'move';
+      
+      // 创建占位符
+      placeholder = document.createElement('div');
+      placeholder.className = 'drag-placeholder';
+      placeholder.style.height = `${draggedElement.offsetHeight}px`;
+    }
+  });
+
+  container.addEventListener('dragend', (e) => {
+    if (draggedElement) {
+      draggedElement.classList.remove('dragging');
+      draggedElement = null;
+    }
+    if (placeholder && placeholder.parentNode) {
+      placeholder.parentNode.removeChild(placeholder);
+    }
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!draggedElement) return;
+
+    const target = e.target.closest('.group-preview');
+    if (!target || target === draggedElement) return;
+
+    const targetRect = target.getBoundingClientRect();
+    const middleY = targetRect.top + targetRect.height / 2;
+    
+    if (e.clientY < middleY) {
+      target.parentNode.insertBefore(placeholder, target);
+    } else {
+      target.parentNode.insertBefore(placeholder, target.nextSibling);
+    }
+  });
+
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!draggedElement || !placeholder) return;
+
+    const target = placeholder.nextSibling;
+    if (target) {
+      container.insertBefore(draggedElement, target);
+    } else {
+      container.appendChild(draggedElement);
+    }
+  });
 } 

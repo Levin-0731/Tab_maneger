@@ -5,122 +5,114 @@
   <style>
     body {
       width: 320px;
-      padding: 16px;
-      font-family: system-ui;
+      padding: 12px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       margin: 0;
+      background: #f9f9f9;
+      color: #1a1a1a;
     }
     
     .header {
       display: flex;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       align-items: center;
+      padding: 0 4px;
     }
     
     .search-box {
       flex: 1;
-      padding: 8px;
-      border: 1px solid #e0e0e0;
+      padding: 8px 12px;
+      border: 1px solid #e5e5e5;
       border-radius: 4px;
       box-sizing: border-box;
       font-size: 13px;
+      background: white;
+      transition: border-color 0.2s;
     }
     
-    #groupTabs {
-      white-space: nowrap;
-      padding: 8px 16px;
-      background: #1a73e8;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      height: 32px;
+    .search-box:focus {
+      outline: none;
+      border-color: #0078d4;
     }
     
-    #groupTabs:disabled {
-      background: #ccc;
-    }
-
     .group-preview {
-      margin-bottom: 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
       overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: move;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .group-preview.dragging {
+      transform: scale(1.02);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
     .group-header {
       display: flex;
       align-items: center;
-      padding: 8px 12px;
-      background: #f5f5f5;
-      border-bottom: 1px solid #e0e0e0;
-      transition: background-color 0.2s ease;
+      padding: 10px 12px;
+      background: #f3f3f3;
+      border-bottom: 1px solid #e5e5e5;
+      user-select: none;
     }
     
     .group-toggle {
-      position: relative;
-      width: 16px;
-      height: 16px;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #666;
+      border-radius: 3px;
       margin: 0;
-      margin-right: 8px;
+      margin-right: 10px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      transition: all 0.2s;
     }
     
     .group-toggle:checked {
-      background-color: #1a73e8;
-      border-color: #1a73e8;
+      background: #0078d4;
+      border-color: #0078d4;
+    }
+    
+    .group-toggle:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
     }
     
     .domain-name {
       font-size: 13px;
-      color: #666;
+      color: #444;
       font-weight: 500;
     }
     
     .tab-list {
       padding: 4px 0;
-      transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .tab-item {
       display: flex;
       align-items: center;
-      padding: 6px 12px;
-      gap: 8px;
+      padding: 8px 12px;
+      gap: 10px;
       font-size: 12px;
-      color: #333;
+      color: #444;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      background: white;
+      transition: background 0.2s;
     }
     
     .tab-item:hover {
-      background: #f0f3f9;
-      padding-left: 16px;
-    }
-    
-    .tab-item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #1a73e8;
-      opacity: 0;
-      transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .tab-item:hover::before {
-      opacity: 1;
-    }
-    
-    .tab-item:active {
-      background: #e8f0fe;
+      background: #f5f5f5;
     }
     
     .tab-favicon {
@@ -139,8 +131,8 @@
     .switch {
       position: relative;
       display: inline-block;
-      width: 48px;
-      height: 24px;
+      width: 40px;
+      height: 20px;
       flex-shrink: 0;
     }
 
@@ -158,40 +150,36 @@
       right: 0;
       bottom: 0;
       background-color: #ccc;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 24px;
-      box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+      transition: 0.2s;
+      border-radius: 20px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
       background-color: white;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: 0.2s;
       border-radius: 50%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
     input:checked + .slider {
-      background-color: #1a73e8;
+      background-color: #0078d4;
     }
 
     input:checked + .slider:before {
-      transform: translateX(24px);
+      transform: translateX(20px);
     }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-    
-    .loading {
-      animation: pulse 1s infinite;
+
+    .drag-placeholder {
+      height: 0;
+      transition: height 0.2s;
+      background: #f0f0f0;
+      border-radius: 6px;
+      margin: 4px 0;
     }
   </style>
 </head>
@@ -200,7 +188,7 @@
     <input type="text" class="search-box" placeholder="搜索标签页...">
     <label class="switch">
       <input type="checkbox" id="groupSwitch">
-      <span class="slider round"></span>
+      <span class="slider"></span>
     </label>
   </div>
   <div id="preview-container"></div>
